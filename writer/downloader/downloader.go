@@ -4,7 +4,6 @@ import (
 	"github.com/ananrafs1/gomic/model"
 	"github.com/ananrafs1/gomic/utils"
 	"os"
-	"errors"
 	"path/filepath"
 	"strconv"
 	"fmt"

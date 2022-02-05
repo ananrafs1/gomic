@@ -1,7 +1,7 @@
 package writer
 
 import(
-	"gitlab.com/appdev.ananrafs1/go-micrenderer/model"
+	"github.com/ananrafs1/gomic/model"
 )
 
 type Writer interface {
