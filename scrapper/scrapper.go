@@ -3,7 +3,6 @@ package scrapper
 import (
 	"github.com/ananrafs1/gomic/orchestrator"
 	"github.com/ananrafs1/gomic/model"
-	"fmt"
 )
 
 func ScrapAll(Host, Title string) (model.Comic, error) {

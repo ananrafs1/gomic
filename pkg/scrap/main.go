@@ -11,9 +11,6 @@ import (
 func main() {
 	scr, err := scrapper.ScrapAll("template.exe", "random")
 	fmt.Println(scr, err)
-
-
-	
 }
 
  func init(){
