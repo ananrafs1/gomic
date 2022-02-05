@@ -2,7 +2,6 @@ package scrapper
 
 import (
 	"github.com/hashicorp/go-plugin"
-	"github.com/ananrafs1/gomic/orchestrator"
 	"github.com/ananrafs1/gomic/orchestrator/shared"
 	"github.com/ananrafs1/gomic/utils"
 	"github.com/ananrafs1/gomic/model"
@@ -12,14 +11,14 @@ import (
 )
 
 func ScrapAll(Host, Title string) (model.Comic, error) {
-	nameFile := filepath.Join("plugins",Host)
+	nameFile := filepath.Join(".","plugins",Host)
 	if exist, err := utils.IsExists(nameFile); !exist {
+		
 		return model.Comic{}, err
 	}
-
 	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig: orchestrator.Handshake,
-		Plugins:         orchestrator.PluginMap,
+		HandshakeConfig: shared.Handshake,
+		Plugins:         shared.PluginMap,
 		Cmd:             exec.Command(nameFile),
 		
 	})

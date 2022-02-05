@@ -1,14 +1,16 @@
 package main
 import (
 	"github.com/ananrafs1/gomic/model"
-	// "github.com/ananrafs1/gomic/scrapper"
+	"github.com/ananrafs1/gomic/scrapper"
 	"github.com/ananrafs1/gomic/utils"
 	"log"
-	// "fmt"
+	"fmt"
 	"path/filepath"
 )
 
 func main() {
+	scr, err := scrapper.ScrapAll("template.exe", "random")
+	fmt.Println(scr, err)
 
 
 	
