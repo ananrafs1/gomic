@@ -6,27 +6,6 @@ import (
 	"net/rpc"
 )
 
-var Handshake = plugin.HandshakeConfig{
-	ProtocolVersion:  1,
-	MagicCookieKey:   "BASIC_PLUGIN",
-	MagicCookieValue: "scrap",
-}
-
-// PluginMap is the map of plugins we can dispense.
-var PluginMap = map[string]plugin.Plugin{
-	"scrapper": &ScrapperPlugin{},
-}
-
-type ScrapperPlugin struct {
-	Impl shared.Scrapper
-}
-func (p *ScrapperPlugin) Server(*plugin.MuxBroker) (interface{}, error) {
-	return &RPCServer{Impl: p.Impl}, nil
-}
-
-func (*ScrapperPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
-	return &RPCClient{client: c}, nil
-}
 
 
 type RPCClient struct{ client *rpc.Client }
