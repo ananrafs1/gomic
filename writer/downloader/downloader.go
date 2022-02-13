@@ -12,12 +12,18 @@ import (
 )
 
 type Downloader struct{
-	model.IProcessor
+	model.Process
 }
 
 func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
-	defer d.OnFinished()
-	d.OnStart()
+	defer func(){
+		if d.Finish != nil {
+			d.Finish()
+		}
+	}()
+	if d.Start != nil {
+		d.Start()
+	}
 	dir := filepath.Join(model.Config.OutputDir, ComicInfo.Title.Name)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
@@ -63,4 +69,12 @@ func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
 	return nil
 
 
+}
+
+func (d *Downloader) OnStart(onStart func()) {
+	(*d).Start = onStart
+}
+
+func (d *Downloader) OnFinished(onFinished func()) {
+	(*d).Finish = onFinished
 }

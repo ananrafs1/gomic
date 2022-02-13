@@ -1,20 +1,25 @@
 package main
 import (
 	"github.com/ananrafs1/gomic/model"
-	"github.com/ananrafs1/gomic/scrapper"
 	"github.com/ananrafs1/gomic/utils"
+	"github.com/ananrafs1/gomic/core"
+	"github.com/ananrafs1/gomic/writer/downloader"
 	"log"
-	"fmt"
 	"path/filepath"
+	"flag"
+)
+var (
+	host, title string
 )
 
 func main() {
-	scr, err := scrapper.ScrapAll("template.exe", "random")
-	fmt.Println(scr, err)
+	err := core.Proces(host, title, &downloader.Downloader{})
+	log.Fatal(err)
 }
 
  func init(){
 	 go ListenConfigurationChange()
+	 readParams()
 
  }
 
@@ -39,4 +44,10 @@ func main() {
 			log.Fatal("Error when Reading Configuration Changes, err: ", errs)
 		 }
 	 }
+ }
+
+ func readParams(){
+	flag.StringVar(&host, "host", "template", "host")
+	flag.StringVar(&title, "title", "random", "title/chapter")
+	flag.Parse()
  }

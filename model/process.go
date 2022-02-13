@@ -1,7 +1,6 @@
 package model
 
-
-type IProcessor interface {
-	OnStart()
-	OnFinished()
+type Process struct {
+	Start func()
+	Finish func()
 }

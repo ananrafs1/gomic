@@ -17,6 +17,8 @@ func Orchest(Host string) (shared.Scrapper, func(),error) {
 		HandshakeConfig: shared.Handshake,
 		Plugins:         shared.PluginMap,
 		Cmd:             exec.Command(nameFile),
+		AllowedProtocols: []plugin.Protocol{
+			 plugin.ProtocolGRPC},
 		
 	})
 	
