@@ -1,24 +1,9 @@
-package shared
+package plugin
 import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/ananrafs1/gomic/model"
-	"github.com/ananrafs1/gomic/orchestrator/shared"
 	"net/rpc"
 )
-
-
-var Handshake = plugin.HandshakeConfig{
-	ProtocolVersion:  1,
-	MagicCookieKey:   "BASIC_PLUGIN",
-	MagicCookieValue: "scrap",
-}
-
-
-// PluginMap is the map of plugins we can dispense.
-var PluginMap = map[string]plugin.Plugin{
-	"scrapper": &ScrapperPlugin{},
-}
-
 
 type ScrapperPlugin struct {
 	Impl Scrapper
@@ -31,7 +16,7 @@ func (*ScrapperPlugin) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, 
 	return &RPCClient{client: c}, nil
 }
 
-type RPCClient struct{ client proto.KVClient }
+type RPCClient struct{ client *rpc.Client }
 
 func (m *RPCClient) ScrapAll(Title string) (model.Comic, error) {
 	// We don't expect a response, so we can just use interface{}
@@ -56,13 +41,13 @@ type RPCServer  struct {
 }
 
 func (m *RPCServer) ScrapPerChapter(args map[string]interface{}, resp *model.Chapter) error {
-	v, err :=  m.Impl.ScrapPerChapter(args["Title"].(string), args["Id"].(string))
+	v :=  m.Impl.ScrapPerChapter(args["Title"].(string), args["Id"].(string))
 	*resp = v
-	return err
+	return nil
 }
 
-func (m *RPCServer) ScrapAll(Title string, resp *model.Comic) error {
-	v, err := m.Impl.ScrapAll(Title)
+func (m *RPCServer) Scrap(Title string, Page, Quantity int, resp *model.Comic) error {
+	v := m.Impl.Scrap(Title, Page, Quantity)
 	*resp = v
-	return err
+	return nil
 }

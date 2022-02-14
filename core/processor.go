@@ -13,8 +13,8 @@ import (
 )
 
 func Proces(Host, Title string, writer writer.IWriter ) error {
-	scr, err := scrapper.ScrapAll(Host, Title)
-	log.Println("1", len(scr.Chapters), err)
+	scr := scrapper.ScrapAll(Host, Title)
+	log.Println("1", len(scr.Chapters))
 	Klausa := func(objPointer *interface{}) error {
 		ch := (*objPointer).(*[]model.Chapter)
 		log.Println(ch)
@@ -25,12 +25,13 @@ func Proces(Host, Title string, writer writer.IWriter ) error {
 			chpter := (*ch)[i]
 			errChannel := make(chan error)
 			errorSignal := make(chan bool)
-			syncG.Add(len(chpter.Images))
-			bar := progressbar.Default(int64(len(chpter.Images)-1), fmt.Sprintf(`downloading chapter-%s`, chpter.Id))
+			Images := chpter.ReconstructImage()
+			syncG.Add(len(Images))
+			bar := progressbar.Default(int64(len(Images)-1), fmt.Sprintf(`downloading chapter-%s`, chpter.Id))
 			writer.OnFinished(func(){
 				bar.Add(1)
 			})
-			for j:= 0; j < len(chpter.Images); j++ {
+			for j:= 0; j < len(Images); j++ {
 				go func(ci model.ComicInfo, img model.Image) {
 					defer syncG.Done()
 					err := writer.Store(img, ci)
@@ -40,7 +41,7 @@ func Proces(Host, Title string, writer writer.IWriter ) error {
 				}(model.ComicInfo{
 					scr.ComicFlat,
 					chpter.ChapterFlat,
-				}, chpter.Images[j])
+				}, Images[j])
 			}
 
 			go func(){
@@ -75,7 +76,7 @@ func Proces(Host, Title string, writer writer.IWriter ) error {
 	wrapper := retry.RecurseTry(Klausa, stopper, 3, time.Duration(2*time.Second))
 	intfPointer := new(interface{})
 	*intfPointer = &scr.Chapters
-	err = wrapper(intfPointer)
+	err := wrapper(intfPointer)
 	if err != nil {
 		log.Println(err)
 		return err
