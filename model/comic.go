@@ -55,7 +55,7 @@ func (ch *Chapter) ReconstructImage() []Image {
 
 	for i :=0; i < len(ch.Images); i++ {
 		currentEpisode := ch.Images[i].Episode
-		currentImage := Image{Episode : currentEpisode}
+		currentImage := Image{Episode : currentEpisode, Link: map[string]string{}}
 		index, ok := mapEpisodeIndex[currentEpisode]
 		if !ok {
 			ret = append(ret, currentImage)

@@ -27,7 +27,7 @@ func Orchest(Host string) (pg.Scrapper, func(),error) {
 		log.Fatal(err)
 	}
 	
-	raw, err := rpcClient.Dispense("scrapper")
+	raw, err := rpcClient.Dispense("grpcscrapper")
 	if err != nil {
 		log.Fatal(err)
 	}

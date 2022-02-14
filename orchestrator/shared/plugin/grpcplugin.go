@@ -24,7 +24,7 @@ func (p *GRPCPlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, 
 
 type GRPCClient struct{ client proto.ScrapperClient }
 
-func (m *GRPCClient) Scrap(Title string, Page, Quantity int) *model.Comic {
+func (m *GRPCClient) Scrap(Title string, Page, Quantity int) model.Comic {
 	resp, err := m.client.Scrap(context.Background(), &proto.ScrapRequest{
 		Title:   Title,
 		Page: int64(Page),
@@ -32,7 +32,7 @@ func (m *GRPCClient) Scrap(Title string, Page, Quantity int) *model.Comic {
 	})
 	if err != nil {
 		log.Fatal(err)
-		return nil
+		return model.Comic{}
 	}
 	ret := model.Comic{
 		model.ComicFlat{
@@ -59,17 +59,17 @@ func (m *GRPCClient) Scrap(Title string, Page, Quantity int) *model.Comic {
 		}
 		ret.Chapters = append(ret.Chapters, chpter)
 	}
-	return &ret
+	return ret
 }
 
-func (m *GRPCClient) ScrapPerChapter(Title, Id string) *model.Chapter {
+func (m *GRPCClient) ScrapPerChapter(Title, Id string) model.Chapter {
 	resp, err := m.client.ScrapPerChapter(context.Background(), &proto.ScrapPerChapterRequest{
 		Title: Title,
 		Id : Id,
 	})
 	if err != nil {
 		log.Fatal(err)
-		return nil
+		return model.Chapter{}
 	}
 	ret := model.Chapter{
 		model.ChapterFlat{
@@ -85,7 +85,7 @@ func (m *GRPCClient) ScrapPerChapter(Title, Id string) *model.Chapter {
 		}
 		ret.Images = append(ret.Images, image)
 	}
-	return &ret
+	return ret
 }
 
 // Here is the gRPC server that GRPCClient talks to.
