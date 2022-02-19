@@ -1,26 +1,25 @@
 package core
 
 import (
-	"github.com/ananrafs1/gomic/scrapper"
-	"github.com/ananrafs1/gomic/model"
-	"github.com/ananrafs1/gomic/writer"
-	"github.com/ananrafs1/go-palugada/retry"
-	"time"
-	"sync"
-	"log"
+	"errors"
 	"fmt"
+	"log"
+	"sync"
+	"time"
+
+	"github.com/ananrafs1/go-palugada/retry"
+	"github.com/ananrafs1/gomic/model"
+	"github.com/ananrafs1/gomic/scrapper"
+	"github.com/ananrafs1/gomic/writer"
 	"github.com/schollz/progressbar/v3"
 )
 
-func Proces(Host, Title string, writer writer.IWriter ) error {
-	scr := scrapper.ScrapAll(Host, Title)
-	log.Println("1", len(scr.Chapters))
+func Process(Host, Title string, Page, Quantity int, writer writer.IWriter) error {
+	scr := scrapper.ScrapAll(Host, Title, Page, Quantity)
 	Klausa := func(objPointer *interface{}) error {
 		ch := (*objPointer).(*[]model.Chapter)
-		log.Println(ch)
 
-
-		for i:= 1; i < len(*ch);  {
+		for i := 0; i < len(*ch); {
 			var syncG sync.WaitGroup
 			chpter := (*ch)[i]
 			errChannel := make(chan error)
@@ -28,10 +27,10 @@ func Proces(Host, Title string, writer writer.IWriter ) error {
 			Images := chpter.ReconstructImage()
 			syncG.Add(len(Images))
 			bar := progressbar.Default(int64(len(Images)-1), fmt.Sprintf(`downloading chapter-%s`, chpter.Id))
-			writer.OnFinished(func(){
+			writer.OnFinished(func() {
 				bar.Add(1)
 			})
-			for j:= 0; j < len(Images); j++ {
+			for j := 0; j < len(Images); j++ {
 				go func(ci model.ComicInfo, img model.Image) {
 					defer syncG.Done()
 					err := writer.Store(img, ci)
@@ -39,19 +38,22 @@ func Proces(Host, Title string, writer writer.IWriter ) error {
 						errChannel <- err
 					}
 				}(model.ComicInfo{
-					scr.ComicFlat,
-					chpter.ChapterFlat,
+					Title:   scr.ComicFlat,
+					Chapter: chpter.ChapterFlat,
 				}, Images[j])
 			}
 
-			go func(){
-				errs := make([]error,0)
+			go func() {
+				errs := make([]error, 0)
 				for {
 					select {
-					case err, ok := <- errChannel:
+					case err, ok := <-errChannel:
 						if !ok {
-							log.Println("error channel closed")
-							errorSignal <-  len(errs) > 0
+							if len(errs) > 0 {
+								log.Println(errs)
+							}
+							errorSignal <- len(errs) > 0
+							return
 						}
 						errs = append(errs, err)
 					}
@@ -60,16 +62,16 @@ func Proces(Host, Title string, writer writer.IWriter ) error {
 
 			syncG.Wait()
 			close(errChannel)
-			isError := <- errorSignal
+			isError := <-errorSignal
 			if !isError {
 				*ch = append((*ch)[:i], (*ch)[i+1:]...)
 				continue
 			}
 			i++
 		}
-		return nil
+		return errors.New("End")
 	}
-	stopper := func (objPointer *interface{}) bool {
+	stopper := func(objPointer *interface{}) bool {
 		ch := (*objPointer).(*[]model.Chapter)
 		return len(*ch) < 1
 	}

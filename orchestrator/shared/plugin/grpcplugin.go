@@ -35,25 +35,25 @@ func (m *GRPCClient) Scrap(Title string, Page, Quantity int) model.Comic {
 		return model.Comic{}
 	}
 	ret := model.Comic{
-		model.ComicFlat{
-			int(resp.Comic.ComicFlat.Id),
-			resp.Comic.ComicFlat.Name,
-			resp.Comic.ComicFlat.Host,
+		ComicFlat : model.ComicFlat{
+			Id : int(resp.Comic.ComicFlat.Id),
+			Name : resp.Comic.ComicFlat.Name,
+			Host : resp.Comic.ComicFlat.Host,
 		},
-		make([]model.Chapter,0),
+		Chapters : make([]model.Chapter,0),
 	}
 	for _, v := range resp.Comic.Chapters {
 		chpter := model.Chapter{
-			model.ChapterFlat{
-				v.ChapterFlat.Id,
+			ChapterFlat : model.ChapterFlat{
+				Id : v.ChapterFlat.Id,
 			},
-			make([]model.ImageProvider, 0),
+			Images : make([]model.ImageProvider, 0),
 		}
 		for _, img := range v.Images {
 			image := model.ImageProvider{
-				int(img.Episode),
-				img.Provider,
-				img.Link,
+				Episode :int(img.Episode),
+				Provider : img.Provider,
+				Link : img.Link,
 			}
 			chpter.Images = append(chpter.Images, image)
 		}
@@ -72,16 +72,16 @@ func (m *GRPCClient) ScrapPerChapter(Title, Id string) model.Chapter {
 		return model.Chapter{}
 	}
 	ret := model.Chapter{
-		model.ChapterFlat{
-			resp.Chapter.ChapterFlat.Id,
+		ChapterFlat: model.ChapterFlat{
+			Id : resp.Chapter.ChapterFlat.Id,
 		},
-		make([]model.ImageProvider, 0),
+		Images : make([]model.ImageProvider, 0),
 	}
 	for _, img := range resp.Chapter.Images {
 		image := model.ImageProvider{
-			int(img.Episode),
-			img.Provider,
-			img.Link,
+			Episode : int(img.Episode),
+			Provider : img.Provider,
+			Link : img.Link,
 		}
 		ret.Images = append(ret.Images, image)
 	}

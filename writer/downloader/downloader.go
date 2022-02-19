@@ -1,22 +1,23 @@
 package downloader
 
 import (
-	"github.com/ananrafs1/gomic/model"
-	"github.com/ananrafs1/gomic/utils"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-	"fmt"
-	"net/http"
-	"io"
+
+	"github.com/ananrafs1/gomic/model"
+	"github.com/ananrafs1/gomic/utils"
 )
 
-type Downloader struct{
+type Downloader struct {
 	model.Process
 }
 
 func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
-	defer func(){
+	defer func() {
 		if d.Finish != nil {
 			d.Finish()
 		}
@@ -24,7 +25,7 @@ func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
 	if d.Start != nil {
 		d.Start()
 	}
-	dir := filepath.Join(model.Config.OutputDir, ComicInfo.Title.Name)
+	dir := filepath.Join(model.Config.OutputDir, ComicInfo.Title.Name, ComicInfo.Chapter.Id)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		return err
@@ -67,7 +68,6 @@ func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
 	}
 
 	return nil
-
 
 }
 
