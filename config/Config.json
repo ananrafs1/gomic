@@ -1,3 +1,6 @@
 {
-    "OutputDir" : "res"
+    "outputdir" : "res",
+    "plugins": {
+        "scrapper": "//plugins//scrapper"
+    }
 }
