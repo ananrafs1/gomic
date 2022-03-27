@@ -1,7 +1,8 @@
 package orchestrator
+
 import (
+	pg "github.com/ananrafs1/gomic/orchestrator/shared/scrapper"
 	"github.com/hashicorp/go-plugin"
-	pg "github.com/ananrafs1/gomic/orchestrator/shared/plugin"
 )
 
 var Handshake = plugin.HandshakeConfig{
@@ -10,10 +11,8 @@ var Handshake = plugin.HandshakeConfig{
 	MagicCookieValue: "scrap",
 }
 
-
 // PluginMap is the map of plugins we can dispense.
 var PluginMap = map[string]plugin.Plugin{
 	// "scrapper": &pg.ScrapperPlugin{},
-	"grpcscrapper" : &pg.GRPCPlugin{},
+	"grpcscrapper": &pg.GRPCPlugin{},
 }
-

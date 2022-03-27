@@ -1,21 +1,25 @@
 package model
+
 import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+
 	"github.com/fsnotify/fsnotify"
 )
+
 type Configuration struct {
-	OutputDir string
+	OutputDir string            `json:"outputdir"`
+	Plugins   map[string]string `json:"plugins"`
 }
 
 func (c *Configuration) ParseConfig(filepath string) error {
 	raw, err := ioutil.ReadFile(filepath)
-    if err != nil {
-       log.Println("Error occured while reading config")
-       return err
-    }
-    json.Unmarshal(raw, c)
+	if err != nil {
+		log.Println("Error occured while reading config")
+		return err
+	}
+	json.Unmarshal(raw, c)
 	return nil
 }
 
@@ -26,11 +30,11 @@ func WatchConfig(filepath string, changes chan string, errorNotif chan error) {
 	}
 	defer watcher.Close()
 	err = watcher.Add(filepath)
-	if err !=  nil {
+	if err != nil {
 		return
 	}
 	done := make(chan bool)
-	go func(){
+	go func() {
 		changes <- filepath
 		for {
 			select {
@@ -38,7 +42,7 @@ func WatchConfig(filepath string, changes chan string, errorNotif chan error) {
 				if !ok {
 					return
 				}
-				
+
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					changes <- event.Name
 					log.Println("modified file:", event.Name)
@@ -52,7 +56,7 @@ func WatchConfig(filepath string, changes chan string, errorNotif chan error) {
 			}
 		}
 	}()
-	<- done
+	<-done
 }
 
 var Config Configuration

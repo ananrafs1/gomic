@@ -22,19 +22,20 @@ func main() {
 }
 
 func init() {
-	go ListenConfigurationChange()
+	fileName := filepath.Join(".", "config", "Config.json")
+	if exist, _ := utils.IsExists(fileName); !exist {
+		log.Fatal("File Not Found")
+		return
+	}
+	model.Config.ParseConfig(fileName)
+	go ListenConfigurationChange(fileName)
 	readParams()
 
 }
 
-func ListenConfigurationChange() {
-	nameFile := filepath.Join(".", "config", "Config.json")
-	if exist, _ := utils.IsExists(nameFile); !exist {
-		log.Fatal("File Not Found")
-		return
-	}
+func ListenConfigurationChange(fileName string) {
 	changes, errNotif := make(chan string), make(chan error)
-	go model.WatchConfig(nameFile, changes, errNotif)
+	go model.WatchConfig(fileName, changes, errNotif)
 
 	for {
 		select {
