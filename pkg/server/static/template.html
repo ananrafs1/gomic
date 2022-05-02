@@ -1,0 +1,6 @@
+<div style="display: inline-grid;justify-items: center;">
+    {{range .Img}}
+        <img src={{.}} style="margin-top: 1vh;margin-bottom:1vh;max-width: 80vw;">
+    {{end}}
+<input type="button" onclick="location.href=`{{.Next}}`" value="Next" style="width: 80vw;padding: 2vh;margin: 5vh;"/>
+</div>

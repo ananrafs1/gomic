@@ -2,5 +2,9 @@
     "outputdir" : "res",
     "plugins": {
         "scrapper": "//plugins//scrapper"
+    },
+    "server": {
+        "staticDir": "//pkg//server//static",
+        "port":"8081"
     }
 }

@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 
+	"github.com/ananrafs1/gomic/utils"
 	"github.com/fsnotify/fsnotify"
 )
 
 type Configuration struct {
 	OutputDir string            `json:"outputdir"`
 	Plugins   map[string]string `json:"plugins"`
+	Server    map[string]string `json:"server"`
 }
 
 func (c *Configuration) ParseConfig(filepath string) error {
@@ -57,6 +60,34 @@ func WatchConfig(filepath string, changes chan string, errorNotif chan error) {
 		}
 	}()
 	<-done
+}
+
+func InitAndListenConfig() {
+	fileName := filepath.Join(".", "config", "Config.json")
+	if exist, _ := utils.IsExists(fileName); !exist {
+		log.Fatal("File Not Found")
+		return
+	}
+	Config.ParseConfig(fileName)
+	go ListenConfigurationChange(fileName)
+}
+
+func ListenConfigurationChange(fileName string) {
+	changes, errNotif := make(chan string), make(chan error)
+	go WatchConfig(fileName, changes, errNotif)
+
+	for {
+		select {
+		case file := <-changes:
+			err := Config.ParseConfig(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+		case errs := <-errNotif:
+			log.Fatal("Error when Reading Configuration Changes, err: ", errs)
+		}
+	}
 }
 
 var Config Configuration

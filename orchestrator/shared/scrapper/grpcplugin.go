@@ -1,11 +1,13 @@
 package plugin
+
 import (
-	"github.com/ananrafs1/gomic/orchestrator/proto"
-	"github.com/ananrafs1/gomic/model"
+	"context"
 	"log"
+
+	"github.com/ananrafs1/gomic/model"
+	"github.com/ananrafs1/gomic/orchestrator/proto"
 	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
-	"context"
 )
 
 type GRPCPlugin struct {
@@ -26,8 +28,8 @@ type GRPCClient struct{ client proto.ScrapperClient }
 
 func (m *GRPCClient) Scrap(Title string, Page, Quantity int) model.Comic {
 	resp, err := m.client.Scrap(context.Background(), &proto.ScrapRequest{
-		Title:   Title,
-		Page: int64(Page),
+		Title:    Title,
+		Page:     int64(Page),
 		Quantity: int64(Quantity),
 	})
 	if err != nil {
@@ -35,25 +37,25 @@ func (m *GRPCClient) Scrap(Title string, Page, Quantity int) model.Comic {
 		return model.Comic{}
 	}
 	ret := model.Comic{
-		ComicFlat : model.ComicFlat{
-			Id : int(resp.Comic.ComicFlat.Id),
-			Name : resp.Comic.ComicFlat.Name,
-			Host : resp.Comic.ComicFlat.Host,
+		ComicFlat: model.ComicFlat{
+			Id:   int(resp.Comic.ComicFlat.GetId()),
+			Name: resp.Comic.ComicFlat.GetName(),
+			Host: resp.Comic.ComicFlat.GetHost(),
 		},
-		Chapters : make([]model.Chapter,0),
+		Chapters: make([]model.Chapter, 0),
 	}
-	for _, v := range resp.Comic.Chapters {
+	for _, v := range resp.Comic.GetChapters() {
 		chpter := model.Chapter{
-			ChapterFlat : model.ChapterFlat{
-				Id : v.ChapterFlat.Id,
+			ChapterFlat: model.ChapterFlat{
+				Id: v.ChapterFlat.GetId(),
 			},
-			Images : make([]model.ImageProvider, 0),
+			Images: make([]model.ImageProvider, 0),
 		}
-		for _, img := range v.Images {
+		for _, img := range v.GetImages() {
 			image := model.ImageProvider{
-				Episode :int(img.Episode),
-				Provider : img.Provider,
-				Link : img.Link,
+				Episode:  int(img.GetEpisode()),
+				Provider: img.GetProvider(),
+				Link:     img.GetLink(),
 			}
 			chpter.Images = append(chpter.Images, image)
 		}
@@ -65,7 +67,7 @@ func (m *GRPCClient) Scrap(Title string, Page, Quantity int) model.Comic {
 func (m *GRPCClient) ScrapPerChapter(Title, Id string) model.Chapter {
 	resp, err := m.client.ScrapPerChapter(context.Background(), &proto.ScrapPerChapterRequest{
 		Title: Title,
-		Id : Id,
+		Id:    Id,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -73,15 +75,15 @@ func (m *GRPCClient) ScrapPerChapter(Title, Id string) model.Chapter {
 	}
 	ret := model.Chapter{
 		ChapterFlat: model.ChapterFlat{
-			Id : resp.Chapter.ChapterFlat.Id,
+			Id: resp.Chapter.ChapterFlat.GetId(),
 		},
-		Images : make([]model.ImageProvider, 0),
+		Images: make([]model.ImageProvider, 0),
 	}
-	for _, img := range resp.Chapter.Images {
+	for _, img := range resp.Chapter.GetImages() {
 		image := model.ImageProvider{
-			Episode : int(img.Episode),
-			Provider : img.Provider,
-			Link : img.Link,
+			Episode:  int(img.GetEpisode()),
+			Provider: img.GetProvider(),
+			Link:     img.GetLink(),
 		}
 		ret.Images = append(ret.Images, image)
 	}
@@ -97,37 +99,37 @@ type GRPCServer struct {
 func (m *GRPCServer) Scrap(
 	ctx context.Context,
 	req *proto.ScrapRequest) (*proto.ScrapResponse, error) {
-		val := m.Impl.Scrap(req.Title, int(req.Page), int(req.Quantity))
+	val := m.Impl.Scrap(req.Title, int(req.Page), int(req.Quantity))
 
-		ret := proto.ScrapResponse{
-			Comic : &proto.Comic{
-				ComicFlat : &proto.ComicFlat{
-					Id : int64(val.ComicFlat.Id),
-					Name: val.ComicFlat.Name,
-					Host: val.ComicFlat.Host,
-				},
+	ret := proto.ScrapResponse{
+		Comic: &proto.Comic{
+			ComicFlat: &proto.ComicFlat{
+				Id:   int64(val.ComicFlat.Id),
+				Name: val.ComicFlat.Name,
+				Host: val.ComicFlat.Host,
+			},
+		},
+	}
+	chapterHolder := make([](*proto.Chapter), 0)
+	for _, v := range val.Chapters {
+		chpter := proto.Chapter{
+			ChapterFlat: &proto.ChapterFlat{
+				Id: v.ChapterFlat.Id,
 			},
 		}
-		chapterHolder := make([](*proto.Chapter), 0)
-		for _, v := range val.Chapters {
-			chpter := proto.Chapter{
-				ChapterFlat: &proto.ChapterFlat{
-					Id : v.ChapterFlat.Id,
-				},
+		imageHolder := make([](*proto.ImageProvider), 0)
+		for _, img := range v.Images {
+			img := proto.ImageProvider{
+				Episode:  int64(img.Episode),
+				Provider: img.Provider,
+				Link:     img.Link,
 			}
-			imageHolder := make([](*proto.ImageProvider), 0)
-			for _, img := range v.Images {
-				img := proto.ImageProvider{
-					Episode: int64(img.Episode),
-					Provider: img.Provider,
-					Link : img.Link,
-				}
-				imageHolder = append(imageHolder, &img)
-			}
-			chpter.Images = imageHolder
-			chapterHolder = append(chapterHolder, &chpter)
+			imageHolder = append(imageHolder, &img)
 		}
-		ret.Comic.Chapters = chapterHolder
+		chpter.Images = imageHolder
+		chapterHolder = append(chapterHolder, &chpter)
+	}
+	ret.Comic.Chapters = chapterHolder
 
 	return &ret, nil
 }
@@ -137,20 +139,20 @@ func (m *GRPCServer) ScrapPerChapter(
 	req *proto.ScrapPerChapterRequest) (*proto.ScrapPerChapterResponse, error) {
 	v := m.Impl.ScrapPerChapter(req.Title, req.Id)
 	ret := proto.ScrapPerChapterResponse{
-		Chapter : &proto.Chapter{
+		Chapter: &proto.Chapter{
 			ChapterFlat: &proto.ChapterFlat{
-				Id : v.ChapterFlat.Id,
+				Id: v.ChapterFlat.Id,
 			},
 		},
 	}
 	imageHolder := make([](*proto.ImageProvider), 0)
 	for _, img := range v.Images {
 		img := proto.ImageProvider{
-				Episode : int64(img.Episode),
-				Provider: img.Provider,
-				Link : img.Link,
-				}
-			imageHolder = append(imageHolder, &img)
+			Episode:  int64(img.Episode),
+			Provider: img.Provider,
+			Link:     img.Link,
+		}
+		imageHolder = append(imageHolder, &img)
 	}
 	ret.Chapter.Images = imageHolder
 
