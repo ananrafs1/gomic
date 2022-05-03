@@ -1,6 +1,19 @@
-<div style="display: inline-grid;justify-items: center;">
+<div style="display: inline-grid;justify-items: center;cursor: none;">
     {{range .Img}}
-        <img src={{.}} style="margin-top: 1vh;margin-bottom:1vh;max-width: 80vw;">
+        <img src={{.}} style="margin-top: 1vh;margin-bottom:1vh;max-width: 80vw;" alt={{.}}/>
     {{end}}
-<input type="button" onclick="location.href=`{{.Next}}`" value="Next" style="width: 80vw;padding: 2vh;margin: 5vh;"/>
+<input id="next" type="button" onclick="location.href=`{{.Next}}`" value="Next" style="width: 80vw;padding: 2vh;margin: 5vh;"/>
+<input id="prev" type="button" onclick="location.href=`{{.Prev}}`" value="Prev" style="width: 80vw;padding: 2vh;margin: 5vh;"/>
 </div>
+<script>
+    document.onkeydown = function (e) {
+    var keyCode = e.keyCode;
+    let map = {
+        37 : () => document.getElementById("prev").click(),
+        39 : () => document.getElementById("next").click(),
+    }
+    if (!!map[keyCode]){
+        map[keyCode]()
+    }
+};
+</script>

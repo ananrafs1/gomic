@@ -19,8 +19,6 @@ import (
 func main() {
 	urls := generateHandler()
 
-	fmt.Println(urls)
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		defer func() {
@@ -95,21 +93,26 @@ func serveStaticFile(chapters map[string][]string, title string) func(http.Respo
 		if err != nil {
 			panic(err)
 		}
-		chapterQS := r.URL.Query()["ch"]
+		chapterQS := "1"
+		if len(r.URL.Query()["ch"]) > 0 {
+			chapterQS = r.URL.Query()["ch"][0]
+		}
 		nt := struct {
 			Img  []string
 			Next string
+			Prev string
 		}{}
 
-		for _, v := range chapters[chapterQS[0]] {
-			nt.Img = append(nt.Img, fmt.Sprintf("img/%s/%s/%s", title, chapterQS[0], v))
+		for _, v := range chapters[chapterQS] {
+			nt.Img = append(nt.Img, fmt.Sprintf("img/%s/%s/%s", title, chapterQS, v))
 		}
 
-		intChapter, err := strconv.Atoi(chapterQS[0])
+		intChapter, err := strconv.Atoi(chapterQS)
 		if err != nil {
 			panic(err)
 		}
 		nt.Next = fmt.Sprintf(`%s?ch=%d`, title, intChapter+1)
+		nt.Prev = fmt.Sprintf(`%s?ch=%d`, title, intChapter-1)
 		templates.Execute(w, nt)
 	}
 }
@@ -126,21 +129,22 @@ func GetTitle(item fs.FileInfo) (title string, chapters map[string][]string) {
 func GetFiles(currentPath string, chapters map[string][]string) {
 	subitems, _ := os.ReadDir(currentPath)
 	for _, subitem := range subitems {
+		fileName := subitem.Name()
 		if subitem.IsDir() {
-			GetFiles(filepath.Join(currentPath, subitem.Name()), chapters)
+			GetFiles(filepath.Join(currentPath, fileName), chapters)
 		} else {
 			currentDir, err := os.Stat(currentPath)
 			if err != nil {
 				panic(err)
 			}
-			fileName := subitem.Name()
-			val, ok := chapters[currentDir.Name()]
+			dirName := currentDir.Name()
+			val, ok := chapters[dirName]
 			if !ok {
-				chapters[currentDir.Name()] = []string{fileName}
+				chapters[dirName] = []string{fileName}
 				continue
 			}
 			val = append(val, fileName)
-			chapters[currentDir.Name()] = val
+			chapters[dirName] = val
 		}
 	}
 }
