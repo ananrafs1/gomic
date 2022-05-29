@@ -1,11 +1,13 @@
 package writer
 
-import(
+import (
+	"context"
+
 	"github.com/ananrafs1/gomic/model"
 )
 
 type IWriter interface {
-	Store(Image model.Image, ComicInfo model.ComicInfo) error
+	Store(ctx context.Context, Image model.Image, ComicInfo model.ComicInfo) error
 	OnStart(onStart func())
 	OnFinished(onStart func())
 }

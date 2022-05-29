@@ -11,9 +11,10 @@ import (
 )
 
 type Configuration struct {
-	OutputDir string            `json:"outputdir"`
-	Plugins   map[string]string `json:"plugins"`
-	Server    map[string]string `json:"server"`
+	OutputDir  string            `json:"outputdir"`
+	Plugins    map[string]string `json:"plugins"`
+	Server     map[string]string `json:"server"`
+	Monitoring map[string]string `json:"monitoring"`
 }
 
 func (c *Configuration) ParseConfig(filepath string) error {

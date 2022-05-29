@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 
 	"github.com/ananrafs1/gomic/core"
+	"github.com/ananrafs1/gomic/lib/writer/downloader"
 	"github.com/ananrafs1/gomic/model"
-	"github.com/ananrafs1/gomic/writer/downloader"
 )
 
 var (
@@ -15,7 +16,7 @@ var (
 )
 
 func main() {
-	err := core.Process(host, title, Page, Quantity, &downloader.Downloader{})
+	err := core.Process(context.Background(), host, title, Page, Quantity, &downloader.Downloader{})
 	log.Fatal(err)
 }
 

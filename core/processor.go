@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -8,14 +9,22 @@ import (
 	"time"
 
 	"github.com/ananrafs1/go-palugada/retry"
+	"github.com/ananrafs1/gomic/lib/monitoring"
+	"github.com/ananrafs1/gomic/lib/scrapper"
+	"github.com/ananrafs1/gomic/lib/writer"
 	"github.com/ananrafs1/gomic/model"
-	"github.com/ananrafs1/gomic/scrapper"
-	"github.com/ananrafs1/gomic/writer"
 	"github.com/schollz/progressbar/v3"
 )
 
-func Process(Host, Title string, Page, Quantity int, writer writer.IWriter) error {
-	scr := scrapper.ScrapAll(Host, Title, Page, Quantity)
+func Process(ctx context.Context, Host, Title string, Page, Quantity int, writer writer.IWriter) error {
+	_, closer, ctx := monitoring.CreateSpan(ctx, "Process")
+	defer closer()
+	scr := scrapper.ScrapAll(ctx, Host, Title, Page, Quantity)
+	return Store(ctx, scr, writer)
+}
+func Store(ctx context.Context, scr *model.Comic, writer writer.IWriter) error {
+	_, closer, ctx := monitoring.CreateSpan(ctx, "ProcessStore")
+	defer closer()
 	Klausa := func(objPointer *interface{}) error {
 		ch := (*objPointer).(*[]model.Chapter)
 
@@ -33,7 +42,7 @@ func Process(Host, Title string, Page, Quantity int, writer writer.IWriter) erro
 			for j := 0; j < len(Images); j++ {
 				go func(ci model.ComicInfo, img model.Image) {
 					defer syncG.Done()
-					err := writer.Store(img, ci)
+					err := writer.Store(ctx, img, ci)
 					if err != nil {
 						errChannel <- err
 					}

@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,15 +9,19 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/ananrafs1/gomic/lib/monitoring"
 	"github.com/ananrafs1/gomic/model"
 	"github.com/ananrafs1/gomic/utils"
+	"go.opentelemetry.io/otel/label"
 )
 
 type Downloader struct {
 	model.Process
 }
 
-func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
+func (d *Downloader) Store(ctx context.Context, Image model.Image, ComicInfo model.ComicInfo) error {
+	span, closer, _ := monitoring.CreateSpan(ctx, "Store")
+	defer closer()
 	defer func() {
 		if d.Finish != nil {
 			d.Finish()
@@ -66,7 +71,8 @@ func (d *Downloader) Store(Image model.Image, ComicInfo model.ComicInfo) error {
 		err = fmt.Errorf("[io.Copy] [%s]", err)
 		return err
 	}
-
+	span.SetAttributes(label.String("NameFile", nameFile),
+		label.Int("StatusCode", response.StatusCode))
 	return nil
 
 }

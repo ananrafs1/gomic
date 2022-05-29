@@ -5,6 +5,12 @@
     },
     "server": {
         "staticDir": "//pkg//server//static",
-        "port":"8081"
+        "port":"8081",
+        "readRoot": "/read",
+        "downloadRoot": "/download"
+    },
+    "monitoring": {
+        "endPoint":"http://localhost:14268/api/traces",
+        "serviceName":"gomic"
     }
 }

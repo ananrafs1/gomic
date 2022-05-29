@@ -1,17 +1,23 @@
 package scrapper
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
+	"github.com/ananrafs1/gomic/lib/monitoring"
 	"github.com/ananrafs1/gomic/model"
 	"github.com/ananrafs1/gomic/orchestrator"
 	plugin "github.com/ananrafs1/gomic/orchestrator/shared/scrapper"
+	"go.opentelemetry.io/otel/label"
 )
 
-func ScrapAll(Host, Title string, Page, Quantity int) *model.Comic {
+func ScrapAll(ctx context.Context, Host, Title string, Page, Quantity int) *model.Comic {
+	span, closer, ctx := monitoring.CreateSpan(ctx, "ScrapAll")
+	defer closer()
 	validate(&Host)
+	span.SetAttributes(label.String("Host", Host))
 	orchestrator := orchestrator.Orchestrator{PluginName: "grpcscrapper", PluginType: "scrapper"}
 	Hst, close, err := orchestrator.Orchest(Host)
 	if err != nil {
