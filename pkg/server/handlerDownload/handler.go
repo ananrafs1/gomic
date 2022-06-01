@@ -1,7 +1,6 @@
 package handlerdownload
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -20,9 +19,10 @@ func DownloaderHandler() func(http.ResponseWriter, *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte(err.Error()))
+				return
 			}
-			// w.WriteHeader(http.StatusOK)
-			// w.Write([]byte(strings.Join(urls, ", ")))
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("DONE"))
 		}()
 		ctx := r.Context()
 		span, closer, ctx := monitoring.CreateSpan(ctx, "DownloaderHandler")
@@ -36,7 +36,7 @@ func DownloaderHandler() func(http.ResponseWriter, *http.Request) {
 		for k := range mapQS {
 			temp := r.URL.Query()[k]
 			if len(temp) < 1 {
-				err = errors.New(fmt.Sprintf("Error, Not found : %s", k))
+				err = fmt.Errorf("error, Not found : %s", k)
 				break
 			}
 			mapQS[k] = temp[0]
@@ -49,7 +49,5 @@ func DownloaderHandler() func(http.ResponseWriter, *http.Request) {
 
 		err = core.Process(ctx, mapQS["h"], mapQS["t"], p, q, &downloader.Downloader{})
 		span.SetAttributes(label.String("Title", mapQS["t"]), label.Int("Page", p), label.Int("Quantity", q))
-		w.WriteHeader(http.StatusAccepted)
-		w.Write([]byte("DONE"))
 	}
 }

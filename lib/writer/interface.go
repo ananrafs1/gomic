@@ -8,6 +8,4 @@ import (
 
 type IWriter interface {
 	Store(ctx context.Context, Image model.Image, ComicInfo model.ComicInfo) error
-	OnStart(onStart func())
-	OnFinished(onStart func())
 }
