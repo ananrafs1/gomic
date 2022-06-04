@@ -15,3 +15,6 @@ runServer:
 updateProto:
 	protoc ./orchestrator/proto/scrapper.proto --go-grpc_out=. --go_out=. --go-grpc_opt=require_unimplemented_servers=false
 
+rundocker:
+	@docker-compose up -d
+

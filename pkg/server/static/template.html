@@ -1,4 +1,4 @@
-<div style="display: inline-grid;justify-items: center;">
+<div id="container" style="display: inline-grid;justify-items: center;transition: 1s ease-in-out;">
     {{range .Img}}
         <img src={{.}} style="margin-top: 1vh;margin-bottom:1vh;max-width: 80vw;" alt={{.}}/>
     {{end}}
@@ -6,14 +6,100 @@
 <input id="prev" type="button" onclick="location.href=`{{.Prev}}`" value="Prev" style="width: 80vw;padding: 2vh;margin: 5vh;"/>
 </div>
 <script>
+    let config = {
+        //keep delay max equal to container transition duration
+        delay: {
+            min: 3000,
+            max: 1000,
+        },
+        speed : 100,
+        transition: 2000,
+        animation : {
+            threshold: 1000,
+            time: 1,
+        },
+        container: document.getElementById('container'),
+    }
+    config.container.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"})
+    let transformator = new Transformers()
+
     document.onkeydown = function (e) {
-    var keyCode = e.keyCode;
-    let map = {
-        37 : () => document.getElementById("prev").click(),
-        39 : () => document.getElementById("next").click(),
+        const keyCode = e.keyCode;
+        let map = {
+            37 : () => document.getElementById("prev").click(),
+            38 : () => transformator.Position = config.transition,
+            39 : () => document.getElementById("next").click(),
+            40: () => transformator.Position = -config.transition,
+            88: () => transformator.Speed = config.speed,
+            67: () =>  transformator.Speed = -config.speed,
+        }
+        if (!!map[keyCode]){
+            map[keyCode]()
+        }
+        e.preventDefault()
+    };
+
+    function Transformers(){
+        this._speed = 0
+        this._pos = 0;
+        this._interval = undefined;
+        this.clearIntervals = () => {
+                //clear interval
+                if (this._interval) clearInterval(this._interval)
+        }
+        this.resetSpeed = () => {
+            this._speed = 0
+        }
+
     }
-    if (!!map[keyCode]){
-        map[keyCode]()
+    Object.defineProperties(Transformers.prototype, {
+        "Speed" : {
+            set: function(val) {
+                //validate max delay
+                if ((this._speed + val) >= (config.delay.min - config.delay.max)) {
+                    console.error('too fast')
+                    return
+                }
+
+                this._speed += val;
+                let delay = config.delay.min - Math.abs(this._speed),
+                navigation = this._speed/Math.abs(this._speed);
+
+                //clear interval
+                this.clearIntervals()
+                //validate interval not equal to zero, or dont create interval when speed equal to zero
+                if (!this._speed) return
+
+                this._interval = setInterval(function(){
+                    transformator.Position =  config.transition*(navigation)
+                }, delay)
+            }
+        },
+        "Position" : {
+            set: function(val) {
+
+                //validate scrolling minimum
+                if (-(this._pos + val) < 0) {
+                    this.clearIntervals()
+                    this.resetSpeed()
+                    return   
+                }
+
+                //validate scrolling maximum
+                if (Math.abs(this._pos + val) >= config.container.clientHeight) {
+                    this.clearIntervals()
+                    this.resetSpeed()
+                    return   
+                }
+
+                this._pos+=val
+                ScroolTo(this._pos)
+            }
+        }
+    })
+    
+    function ScroolTo(pos) {
+        const container= config.container
+        container.style.transform = `translateY(${pos}px)`
     }
-};
 </script>

@@ -9,23 +9,23 @@ import (
 
 type WriterProcess struct {
 	WR writer.IWriter
-	p  model.Process
+	model.Process
 }
 
 func (wp *WriterProcess) Store(ctx context.Context, Image model.Image, ComicInfo model.ComicInfo) error {
-	if wp.p.Finish != nil {
-		defer wp.p.Finish()
+	if wp.Finish != nil {
+		defer wp.Finish()
 	}
-	if wp.p.Start != nil {
-		wp.p.Start()
+	if wp.Start != nil {
+		wp.Start()
 	}
 	return wp.WR.Store(ctx, Image, ComicInfo)
 }
 
 func (wp *WriterProcess) OnStart(onStartFunc func()) {
-	wp.p.Start = onStartFunc
+	wp.Start = onStartFunc
 }
 
 func (wp *WriterProcess) OnFinished(onFinishFunc func()) {
-	wp.p.Finish = onFinishFunc
+	wp.Finish = onFinishFunc
 }
